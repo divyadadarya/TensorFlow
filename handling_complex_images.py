@@ -1,33 +1,18 @@
 #Handling Complex Images
 
 import tensorflow as tf
-import os
-import zipfile
-from os import path, getcwd, chdir
 
-# DO NOT CHANGE THE LINE BELOW. If you are developing in a local
-# environment, then grab happy-or-sad.zip from the Coursera Jupyter Notebook
-# and place it inside a local folder and edit the path to that location
-path = f"{getcwd()}/../tmp2/happy-or-sad.zip"
 
-zip_ref = zipfile.ZipFile(path, 'r')
-zip_ref.extractall("/tmp/h-or-s")
-zip_ref.close()
-
-def train_happy_sad_model():
-    # Please write your code only where you are indicated.
-    # please do not remove # model fitting inline comments.
-
-    class myCallback(tf.keras.callbacks.Callback):
-         def on_epoch_end(self, epoch, logs={}):
+class myCallback(tf.keras.callbacks.Callback):
+        def on_epoch_end(self, epoch, logs={}):
             if(logs.get('accuracy')>0.999):
                 print("\nReached 99.9% accuracy so cancelling training!")
                 self.model.stop_training = True
 
-    callbacks = myCallback()
+callbacks = myCallback()
     
     # This Code Block should Define and Compile the Model. Please assume the images are 150 X 150 in your implementation.
-    model = tf.keras.models.Sequential([
+model = tf.keras.models.Sequential([
          # This is the first convolution
           tf.keras.layers.Conv2D(16, (3,3), activation='relu', input_shape=(150, 150, 3)),
           tf.keras.layers.MaxPooling2D(2, 2),
@@ -45,9 +30,9 @@ def train_happy_sad_model():
           tf.keras.layers.Dense(1, activation='sigmoid')
     ])
 
-    from tensorflow.keras.optimizers import RMSprop
+from tensorflow.keras.optimizers import RMSprop
 
-    model.compile(loss='binary_crossentropy',
+model.compile(loss='binary_crossentropy',
               optimizer=RMSprop(lr=0.001),
               metrics=['accuracy'])
         
@@ -55,29 +40,21 @@ def train_happy_sad_model():
     # This code block should create an instance of an ImageDataGenerator called train_datagen 
     # And a train_generator by calling train_datagen.flow_from_directory
 
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-    train_datagen = ImageDataGenerator(rescale=1/255)
+train_datagen = ImageDataGenerator(rescale=1./255)
 
     # Please use a target_size of 150 X 150.
-    train_generator = train_datagen.flow_from_directory(
-        '/tmp/h-or-s',  # This is the source directory for training images
+train_generator = train_datagen.flow_from_directory(
+        'h-or-s',  # This is the source directory for training images
         target_size=(150, 150),  # All images will be resized to 150x150
-        batch_size=128,
+        batch_size=8,
         # Since we use binary_crossentropy loss, we need binary labels
         class_mode='binary')
-    # Expected output: 'Found 80 images belonging to 2 classes'
-
-    # This code block should call model.fit_generator and train for
-    # a number of epochs.
-    # model fitting
-    history = model.fit_generator(
+    
+model.fit_generator(
           train_generator,
           steps_per_epoch=8,  
           epochs=15,
-          verbose=1,
+          verbose=True,
           callbacks = [callbacks])
-    # model fitting
-    return history.history['acc'][-1]
-
-train_happy_sad_model()
